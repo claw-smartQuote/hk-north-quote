@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="港車北上報價">
+    <meta name="theme-color" content="#667eea">
+    <meta name="format-detection" content="telephone=no">
+    <title>港車北上-報價系統 | iPad / Mac</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5a6fd6;
+            --secondary: #764ba2;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --card-shadow: 0 8px 32px rgba(102, 126, 234, 0.25);
+            --card-radius: 24px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        html {
+            font-size: 16px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            min-height: 100dvh;
+            padding: clamp(16px, 4vw, 48px);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ============ DESKTOP TWO-COLUMN LAYOUT (iPad Landscape / Mac) ============ */
+        @media (min-width: 1024px) {
+            body {
+                padding: 40px 60px;
+            }
+
+            .main-grid {
+                display: grid;
+                grid-template-columns: 1fr 420px;
+                gap: 32px;
+                max-width: 1400px;
+                margin: 0 auto;
+                align-items: start;
+            }
+
+            .form-section {
+                order: 1;
+            }
+
+            .result-section {
+                order: 2;
+                position: sticky;
+                top: 40px;
+                max-height: calc(100vh - 80px);
+                overflow-y: auto;
+            }
+
+            .container {
+                max-width: none;
+                border-radius: var(--card-radius);
+                margin: 0;
+            }
+
+            .result-card {
+                border-radius: var(--card-radius);
+            }
+        }
+
+        /* ============ MOBILE LAYOUT ============ */
+        @media (max-width: 1023px) {
+            .main-grid {
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+                max-width: 800px;
+                margin: 0 auto;
+            }
+
+            .container {
+                max-width: 800px;
+                margin: 0 auto;
+            }
+        }
+
+        .container {
+            background: white;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+        }
+
+        /* ============ HEADER ============ */
+        .header {
+            background: var(--bg-gradient);
+            color: white;
+            padding: clamp(24px, 5vw, 48px);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .header h1 {
+            font-size: clamp(24px, 4vw, 36px);
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            position: relative;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: clamp(13px, 2vw, 16px);
+            font-weight: 400;
+            position: relative;
+        }
+
+        /* ============ FORM SECTION ============ */
+        .form-section {
+            padding: clamp(20px, 4vw, 40px);
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1a1a2e;
+            letter-spacing: -0.1px;
+        }
+
+        label .optional {
+            font-weight: 400;
+            color: #888;
+            font-size: 12px;
+            margin-left: 4px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e8e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: inherit;
+            background: #fafbff;
+            transition: var(--transition);
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.12);
+        }
+
+        input[type="text"]::placeholder {
+            color: #aaa;
+        }
+
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23666' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 44px;
+            cursor: pointer;
+        }
+
+        /* ============ AGE METHOD SELECTOR ============ */
+        .age-method-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .age-method-btn {
+            flex: 1;
+            padding: 10px 8px;
+            border: 2px solid #e8e8f0;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 13px;
+            font-weight: 500;
+            color: #666;
+            font-family: inherit;
+        }
+
+        .age-method-btn.active {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(102,126,234,0.08), rgba(118,75,162,0.08));
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .age-method-btn:hover:not(.active) {
+            border-color: #c8c8e0;
+            background: #f8f9ff;
+        }
+
+        .age-input-group {
+            display: none;
+        }
+
+        .age-input-group.active {
+            display: block;
+        }
+
+        /* ============ INFO BOX ============ */
+        .info-box {
+            background: linear-gradient(135deg, #f0f4ff 0%, #f8f0ff 100%);
+            border-left: 4px solid var(--primary);
+            padding: 16px;
+            border-radius: 0 12px 12px 0;
+            font-size: 13px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .info-box strong {
+            color: var(--primary-dark);
+        }
+
+        /* ============ CALCULATE BUTTON ============ */
+        .calculate-btn {
+            width: 100%;
+            padding: 18px;
+            background: var(--bg-gradient);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.35);
+            margin-top: 8px;
+            font-family: inherit;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.5);
+        }
+
+        .calculate-btn:active {
+            transform: translateY(0);
+        }
+
+        /* ============ RESULT SECTION ============ */
+        .result-section {
+            display: none;
+        }
+
+        .result-section.show {
+            display: block;
+        }
+
+        .result-card {
+            background: white;
+            box-shadow: var(--card-shadow);
+            border-radius: var(--card-radius);
+            overflow: hidden;
+        }
+
+        .result-header {
+            background: var(--bg-gradient);
+            color: white;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .result-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .result-header p {
+            font-size: 13px;
+            opacity: 0.85;
+        }
+
+        .result-body {
+            padding: 24px;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid #f0f0f8;
+            gap: 12px;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            color: #666;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .result-value {
+            font-weight: 700;
+            color: #1a1a2e;
+            font-size: 15px;
+            text-align: right;
+        }
+
+        .result-item.total {
+            margin-top: 16px;
+            padding-top: 20px;
+            border-top: 2.5px solid var(--primary);
+            border-bottom: none;
+        }
+
+        .result-item.total .result-label {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        .result-item.total .result-value {
+            font-size: 28px;
+            font-weight: 900;
+            color: var(--primary);
+            letter-spacing: -1px;
+        }
+
+        .result-footer {
+            padding: 16px 24px 24px;
+            text-align: center;
+        }
+
+        .result-timestamp {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 16px;
+        }
+
+        .share-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .share-btn {
+            flex: 1;
+            padding: 14px 12px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .share-btn.txt {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .share-btn.jpg {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+        }
+
+        .share-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        /* ============ HISTORY ============ */
+        .history-section {
+            margin-top: 24px;
+            display: none;
+        }
+
+        .history-section.show {
+            display: block;
+        }
+
+        .history-card {
+            background: white;
+            border-radius: var(--card-radius);
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+        }
+
+        .history-header {
+            background: linear-gradient(135deg, #f8f9ff, #f0f4ff);
+            padding: 20px 24px;
+            border-bottom: 1px solid #e8e8f0;
+        }
+
+        .history-header h3 {
+            font-size: 16px;
+            color: #1a1a2e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .history-list {
+            padding: 12px 16px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            background: #f8f9ff;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 2px solid transparent;
+        }
+
+        .history-item:hover {
+            border-color: var(--primary);
+            background: white;
+        }
+
+        .history-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .history-item-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .history-plate {
+            font-weight: 700;
+            color: #1a1a2e;
+            font-size: 15px;
+        }
+
+        .history-price {
+            font-weight: 800;
+            color: var(--primary);
+            font-size: 16px;
+        }
+
+        .history-detail {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .history-footer {
+            padding: 12px 24px;
+            border-top: 1px solid #e8e8f0;
+        }
+
+        .clear-history-btn {
+            width: 100%;
+            padding: 12px;
+            background: #fff0f0;
+            color: #e74c3c;
+            border: 2px solid #ffe0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: inherit;
+            transition: var(--transition);
+        }
+
+        .clear-history-btn:hover {
+            background: #ffe0e0;
+        }
+
+        /* ============ ANIMATIONS ============ */
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-section.show .result-card {
+            animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ============ iPad Pro (1366px+) ============ */
+        @media (min-width: 1366px) {
+            body {
+                padding: 60px 100px;
+            }
+
+            .main-grid {
+                grid-template-columns: 1fr 480px;
+                gap: 40px;
+            }
+
+            .form-section {
+                padding: 48px;
+            }
+
+            .form-group label {
+                font-size: 15px;
+            }
+
+            input[type="text"],
+            input[type="number"],
+            select {
+                padding: 16px 18px;
+                font-size: 17px;
+            }
+
+            .calculate-btn {
+                padding: 20px;
+                font-size: 20px;
+            }
+        }
+
+        /* ============ iPad Portrait ============ */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .form-section {
+                padding: 32px;
+            }
+        }
+
+        /* ============ SCROLLBAR ============ */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.3);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-grid">
+    <!-- LEFT: Form -->
+    <div class="form-section">
+        <div class="container">
+            <div class="header">
+                <h1>🚗 港車北上-報價系統</h1>
+                <p>永誠財產保險 | 汽車保險報價計算工具</p>
+            </div>
+
+            <div class="form-section" style="padding: 24px 32px 32px;">
+                <form id="quoteForm">
+                    <div class="form-grid">
+
+                        <div class="form-group full">
+                            <label>車牌號碼</label>
+                            <input type="text" id="plate" placeholder="例如：JD360" required>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>車輛類型</label>
+                                <select id="fuelType">
+                                    <option value="燃油车">燃油車</option>
+                                    <option value="新能源车">新能源車</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>使用性質</label>
+                                <select id="category">
+                                    <option value="6座以下个人">6座以下個人</option>
+                                    <option value="6座以下企业">6座以下企業</option>
+                                    <option value="6-10座个人">6-10座個人</option>
+                                    <option value="6-10座企业">6-10座企業</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>乘客數量（不含司機）</label>
+                                <input type="number" id="passengers" value="4" min="1" max="9">
+                            </div>
+
+                            <div class="form-group">
+                                <label>第三者責任險</label>
+                                <select id="thirdParty">
+                                    <option value="0">不投保</option>
+                                    <option value="100">100萬</option>
+                                    <option value="150">150萬</option>
+                                    <option value="200">200萬</option>
+                                    <option value="300" selected>300萬</option>
+                                    <option value="400">400萬</option>
+                                    <option value="500">500萬</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group full">
+                            <label>車齡計算方式</label>
+                            <div class="age-method-selector">
+                                <button type="button" class="age-method-btn active" data-method="select">選擇車齡</button>
+                                <button type="button" class="age-method-btn" data-method="yearmonth">年份和月份</button>
+                            </div>
+
+                            <div class="age-input-group active" id="selectAge">
+                                <select id="vehicleAgeSelect">
+                                    <option value="3.5">3年以上 → 七折</option>
+                                    <option value="2.5">2年以上 → 八折</option>
+                                    <option value="1.5">2年以下 → 九折</option>
+                                </select>
+                            </div>
+
+                            <div class="age-input-group" id="yearMonthAge">
+                                <div class="form-row">
+                                    <input type="number" id="regYear" placeholder="登記年份（如：2021）" min="2000" max="2030">
+                                    <input type="number" id="regMonth" placeholder="月份（1-12）" min="1" max="12">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>駕意險 <span class="optional">（可選）</span></label>
+                                <select id="drivingAccident">
+                                    <option value="无" selected>不投保</option>
+                                    <option value="30万">30萬保障（40元/位）</option>
+                                    <option value="50万">50萬保障（60元/位）</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>醫保外用藥 <span class="optional">（可選）</span></label>
+                                <select id="medicalOutside">
+                                    <option value="10" selected>10萬（默認）</option>
+                                    <option value="20">20萬</option>
+                                    <option value="0">不投保</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group full">
+                            <div class="info-box">
+                                <strong>包含保障：</strong>交強險 + 商業第三者責任險 + 醫保外用藥 + <strong>12次道路救援</strong>（拖車、送油、換胎）免費
+                            </div>
+                        </div>
+
+                        <div class="form-group full">
+                            <button type="submit" class="calculate-btn">🚀 立即計算報價</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT: Result + History -->
+    <div class="result-section" id="resultSection">
+        <div class="result-card">
+            <div class="result-header">
+                <h2>📋 報價單</h2>
+                <p id="resultPlate">—</p>
+            </div>
+            <div class="result-body" id="resultBody">
+                <!-- Dynamic content -->
+            </div>
+            <div class="result-footer">
+                <div class="result-timestamp" id="resultTimestamp"></div>
+                <div class="share-buttons">
+                    <button class="share-btn txt" onclick="shareAsText()">📄 分享文字檔</button>
+                    <button class="share-btn jpg" onclick="shareAsImage()">🖼️ 分享圖片</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="history-section" id="historySection">
+            <div class="history-card">
+                <div class="history-header">
+                    <h3>📜 報價記錄</h3>
+                </div>
+                <div class="history-list" id="historyList"></div>
+                <div class="history-footer">
+                    <button class="clear-history-btn" onclick="clearHistory()">🗑️ 清除記錄</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ========== 費率表數據 ==========
+const FUEL_THIRD_PARTY_RATES = {
+    "6座以下个人": {100: 755.20, 150: 843.43, 200: 922.08, 300: 1074.67, 400: 1224.08, 500: 1370.37},
+    "6座以下企业": {100: 926.69, 150: 1021.67, 200: 1106.37, 300: 1270.71, 400: 1431.67, 500: 1589.21},
+    "6-10座个人": {100: 893.52, 150: 997.93, 200: 1090.99, 300: 1271.49, 400: 1448.28, 500: 1621.36},
+    "6-10座企业": {100: 1066.80, 150: 1176.13, 200: 1273.65, 300: 1462.85, 400: 1648.15, 500: 1829.55},
+};
+
+const EV_THIRD_PARTY_RATES = {
+    "6座以下个人": {100: 830.72, 150: 927.77, 200: 1014.29, 300: 1182.14, 400: 1346.49, 500: 1507.41},
+    "6座以下企业": {100: 1039.75, 150: 1146.32, 200: 1241.36, 300: 1425.73, 400: 1606.34, 500: 1783.10},
+    "6-10座个人": {100: 982.87, 150: 1097.72, 200: 1200.09, 300: 1398.64, 400: 1593.11, 500: 1783.50},
+    "6-10座企业": {100: 1196.96, 150: 1319.62, 200: 1429.04, 300: 1641.32, 400: 2052.76, 500: 2251.89},
+};
+
+const FUEL_MEDICAL_OUTSIDE_RATES = {0: 0, 10: 73.33, 20: 102.67, 30: 124.00, 50: 158.67, 100: 221.33};
+const EV_MEDICAL_OUTSIDE_RATES = {0: 0, 10: 71.18, 20: 99.65, 30: 109.41, 50: 140.00, 100: 195.29};
+
+const COMPULSORY_BASE_RATES = {
+    "6座以下个人": 950,
+    "6座以下企业": 1000,
+    "6-10座个人": 1100,
+    "6-10座企业": 1130,
+};
+
+// ========== 計算函數 ==========
+function calculateAgeFromYearMonth(year, month) {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    let ageYear = currentYear - year;
+    if (currentMonth < month) { ageYear -= 1; }
+    const monthDiff = currentMonth >= month ? currentMonth - month : 12 - month + currentMonth;
+    return Math.round((ageYear + monthDiff / 12) * 10) / 10;
+}
+
+function calculateCommercialDiscount(fuelType, vehicleAge) {
+    if (vehicleAge >= 3) return 0.7;
+    if (vehicleAge >= 2) return 0.8;
+    return 0.9;
+}
+
+function calculateDrivingAccident(coverageType, seatCount) {
+    if (coverageType === "无") return 0;
+    if (coverageType === "30万") return seatCount * 40;
+    if (coverageType === "50万") return seatCount * 60;
+    return 0;
+}
+
+function getAgeLabel(vehicleAge) {
+    if (vehicleAge >= 3) return '3年以上 (七折)';
+    if (vehicleAge >= 2) return '2年以上 (八折)';
+    return '2年以下 (九折)';
+}
+
+function generateQuote(data) {
+    const rates = data.fuelType === "燃油车" ? FUEL_THIRD_PARTY_RATES : EV_THIRD_PARTY_RATES;
+    const medicalRates = data.fuelType === "燃油车" ? FUEL_MEDICAL_OUTSIDE_RATES : EV_MEDICAL_OUTSIDE_RATES;
+    const discount = calculateCommercialDiscount(data.fuelType, data.vehicleAge);
+    const compulsoryBase = COMPULSORY_BASE_RATES[data.category] || 950;
+    const compulsoryPremium = compulsoryBase * discount;
+    const commercialDiscount = (data.fuelType === "新能源车") ? 0.9 : discount;
+    const baseThirdParty = rates[data.category][data.thirdParty] || 0;
+    const thirdPartyPremium = baseThirdParty * commercialDiscount;
+    const medicalOutsideLimit = data.medicalOutsideLimit || 10;
+    const medicalOutsideThird = (medicalRates[medicalOutsideLimit] || 0) * commercialDiscount;
+    const totalSeats = data.passengers + 1;
+    const drivingAccidentPremium = calculateDrivingAccident(data.drivingAccident, totalSeats);
+    const commercialTotal = thirdPartyPremium + medicalOutsideThird + drivingAccidentPremium;
+    const totalPremium = compulsoryPremium + commercialTotal;
+
+    return {
+        plate: data.plate, fuelType: data.fuelType, category: data.category,
+        passengers: data.passengers, vehicleAge: data.vehicleAge,
+        thirdParty: data.thirdParty, medicalOutsideLimit: medicalOutsideLimit,
+        drivingAccident: data.drivingAccident,
+        compulsoryPremium, thirdPartyPremium, medicalOutside: medicalOutsideThird,
+        drivingAccidentPremium, commercialTotal, totalPremium
+    };
+}
+
+// ========== 界面 ==========
+let quoteHistory = JSON.parse(localStorage.getItem('quoteHistory_v2') || '[]');
+let currentResult = null;
+
+document.querySelectorAll('.age-method-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.age-method-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        const method = this.dataset.method;
+        document.querySelectorAll('.age-input-group').forEach(g => g.classList.remove('active'));
+        document.getElementById(method === 'select' ? 'selectAge' : 'yearMonthAge').classList.add('active');
+    });
+});
+
+document.getElementById('quoteForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const ageMethod = document.querySelector('.age-method-btn.active').dataset.method;
+    let vehicleAge;
+    if (ageMethod === 'select') {
+        vehicleAge = parseFloat(document.getElementById('vehicleAgeSelect').value);
+    } else {
+        const year = parseInt(document.getElementById('regYear').value);
+        const month = parseInt(document.getElementById('regMonth').value);
+        if (!year || !month || month < 1 || month > 12) {
+            alert('請輸入正確的年份和月份');
+            return;
+        }
+        vehicleAge = calculateAgeFromYearMonth(year, month);
+    }
+
+    const data = {
+        plate: document.getElementById('plate').value,
+        fuelType: document.getElementById('fuelType').value,
+        category: document.getElementById('category').value,
+        passengers: parseInt(document.getElementById('passengers').value) || 4,
+        vehicleAge,
+        thirdParty: parseInt(document.getElementById('thirdParty').value) || 300,
+        medicalOutsideLimit: parseInt(document.getElementById('medicalOutside').value) || 10,
+        drivingAccident: document.getElementById('drivingAccident').value
+    };
+
+    currentResult = generateQuote(data);
+    displayResult(currentResult);
+    addToHistory(currentResult);
+});
+
+function displayResult(r) {
+    document.getElementById('resultPlate').textContent = r.plate + ' | ' + r.fuelType + ' | ' + r.category;
+    const now = new Date();
+    document.getElementById('resultTimestamp').textContent =
+        '報價時間：' + now.toLocaleDateString('en-GB', {day:'2-digit',month:'2-digit',year:'numeric'}) + ' ' +
+        now.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit',hour12:false});
+
+    const items = [
+        { label: '交強險（20萬）', value: r.compulsoryPremium.toFixed(2) + '元' },
+        { label: '第三者責任險 (' + r.thirdParty + '萬)', value: r.thirdPartyPremium.toFixed(2) + '元' },
+        { label: '醫保外用藥（' + r.medicalOutsideLimit + '萬）', value: r.medicalOutside.toFixed(2) + '元' },
+    ];
+
+    if (r.drivingAccident !== '无') {
+        items.push({ label: '駕意險（' + r.drivingAccident + '）', value: r.drivingAccidentPremium.toFixed(2) + '元' });
+    }
+
+    items.push({ label: '道路救援（12次）', value: '免費' });
+    items.push({ label: '汽車登記年期', value: getAgeLabel(r.vehicleAge) }, { isTotal: true, label: '保費合計', value: r.totalPremium.toFixed(2) + '元' });
+
+    let html = '';
+    items.forEach(item => {
+        if (item.isTotal) {
+            html += `<div class="result-item total">
+                <span class="result-label">${item.label}</span>
+                <span class="result-value">${item.value}</span>
+            </div>`;
+        } else {
+            html += `<div class="result-item">
+                <span class="result-label">${item.label}</span>
+                <span class="result-value">${item.value}</span>
+            </div>`;
+        }
+    });
+
+    document.getElementById('resultBody').innerHTML = html;
+    document.getElementById('resultSection').classList.add('show');
+    document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function getFileName(ext) {
+    const plate = document.getElementById('plate').value || '報價單';
+    const now = new Date();
+    const dd = String(now.getDate()).padStart(2, '0');
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const yyyy = now.getFullYear();
+    return `${plate}(報價)${dd}${mm}${yyyy}.${ext}`;
+}
+
+function shareAsText() {
+    if (!currentResult) return;
+    const items = [
+        ['車牌', currentResult.plate],
+        ['車輛', currentResult.fuelType],
+        ['性質', currentResult.category],
+        ['乘客', currentResult.passengers + '人'],
+        ['車齡', getAgeLabel(currentResult.vehicleAge)],
+        ['交強險', currentResult.compulsoryPremium.toFixed(2) + '元'],
+        ['三者險(' + currentResult.thirdParty + '萬)', currentResult.thirdPartyPremium.toFixed(2) + '元'],
+        ['醫保外(' + currentResult.medicalOutsideLimit + '萬)', currentResult.medicalOutside.toFixed(2) + '元'],
+    ];
+    if (currentResult.drivingAccident !== '无') {
+        items.push(['駕意險', currentResult.drivingAccidentPremium.toFixed(2) + '元']);
+    }
+    items.push(['道路救援', '免費']);
+    items.push(['合計', currentResult.totalPremium.toFixed(2) + '元']);
+
+    let text = '永誠保險-港車北上 報價單\n' + '═'.repeat(32) + '\n\n';
+    items.forEach(([k, v]) => text += k + '：' + v + '\n');
+    text += '\n' + '═'.repeat(32) + '\n此報價僅供參考，具體保費以投保時系統金額為準。';
+
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + text], { type: 'text/plain;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = getFileName('txt');
+    a.click();
+    URL.revokeObjectURL(a.href);
+}
+
+function shareAsImage() {
+    if (!currentResult) return;
+    const r = currentResult;
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const W = 1120;
+    const rowH = 90;
+    const headerH = 120;
+    const footerH = 200;
+    const pad = 60;
+    const H = headerH + 8 * rowH + footerH + 40;
+
+    canvas.width = W;
+    canvas.height = H;
+
+    ctx.fillStyle = '#f0f2ff';
+    ctx.fillRect(0, 0, W, H);
+
+    // Card
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(0,0,0,0.08)';
+    ctx.shadowBlur = 30;
+    ctx.shadowOffsetY = 10;
+    roundRect(ctx, 40, 20, W - 80, H - 40, 24);
+    ctx.fill();
+    ctx.shadowColor = 'transparent';
+
+    // Header gradient bar
+    ctx.fillStyle = '#667eea';
+    roundRectTop(ctx, 40, 20, W - 80, 80, 24);
+    ctx.fill();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 36px "PingFang SC", "Microsoft YaHei", Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText('永誠保險 - 港車北上 報價單', 100, 75);
+
+    // Sub-header
+    ctx.fillStyle = '#1a1a2e';
+    ctx.font = 'bold 28px "PingFang SC", Arial';
+    ctx.fillText(r.plate + ' | ' + r.fuelType + ' | ' + r.category, 80, 180);
+
+    let y = 210;
+    const rows = [
+        ['交強險（20萬）', r.compulsoryPremium.toFixed(2) + ' 元'],
+        ['第三者責任險 (' + r.thirdParty + '萬)', r.thirdPartyPremium.toFixed(2) + ' 元'],
+        ['醫保外用藥（' + r.medicalOutsideLimit + '萬）', r.medicalOutside.toFixed(2) + ' 元'],
+    ];
+    if (r.drivingAccident !== '无') rows.push(['駕意險（' + r.drivingAccident + '）', r.drivingAccidentPremium.toFixed(2) + ' 元']);
+    rows.push(['汽車登記年期', getAgeLabel(r.vehicleAge)]);
+    rows.push(['道路救援（12次）', '免費']);
+
+    rows.forEach(([label, value]) => {
+        y += rowH;
+        ctx.fillStyle = '#555';
+        ctx.font = '26px "PingFang SC", Arial';
+        ctx.textAlign = 'left';
+        ctx.fillText(label, 80, y);
+        ctx.fillStyle = '#1a1a2e';
+        ctx.font = 'bold 26px "PingFang SC", Arial';
+        ctx.textAlign = 'right';
+        ctx.fillText(value, W - 80, y);
+        ctx.strokeStyle = '#f0f0f8';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(80, y + 20);
+        ctx.lineTo(W - 80, y + 20);
+        ctx.stroke();
+    });
+
+    // Total
+    y += rowH + 10;
+    ctx.strokeStyle = '#667eea';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(80, y - 20);
+    ctx.lineTo(W - 80, y - 20);
+    ctx.stroke();
+
+    ctx.fillStyle = '#1a1a2e';
+    ctx.font = 'bold 28px "PingFang SC", Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText('保費合計', 80, y + 15);
+    ctx.fillStyle = '#667eea';
+    ctx.font = 'bold 44px "PingFang SC", Arial';
+    ctx.textAlign = 'right';
+    ctx.fillText(r.totalPremium.toFixed(2) + ' 元', W - 80, y + 15);
+
+    // Footer
+    y = H - 80;
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-GB', {day:'2-digit',month:'2-digit',year:'numeric'}) + ' ' + now.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit',hour12:false});
+    ctx.fillStyle = '#999';
+    ctx.font = '20px "PingFang SC", Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('報價時間：' + dateStr + '  |  此報價僅供參考，具體保費以投保時系統金額為準', W / 2, y);
+    y += 35;
+    ctx.fillText('© smartQuote AI Solution', W / 2, y);
+
+    canvas.toBlob(function(blob) {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = getFileName('jpg');
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }, 'image/jpeg', 0.95);
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+}
+
+function roundRectTop(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h);
+    ctx.lineTo(x, y + h);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+}
+
+function addToHistory(r) {
+    const item = { ...r, timestamp: new Date().toLocaleString('zh-HK') };
+    quoteHistory.unshift(item);
+    if (quoteHistory.length > 20) quoteHistory.pop();
+    localStorage.setItem('quoteHistory_v2', JSON.stringify(quoteHistory));
+    displayHistory();
+}
+
+function displayHistory() {
+    const section = document.getElementById('historySection');
+    const list = document.getElementById('historyList');
+    if (quoteHistory.length === 0) {
+        section.classList.remove('show');
+        return;
+    }
+    section.classList.add('show');
+    list.innerHTML = quoteHistory.map((item, i) => `
+        <div class="history-item" onclick="loadFromHistory(${i})">
+            <div class="history-item-top">
+                <span class="history-plate">${item.plate} - ${item.fuelType}</span>
+                <span class="history-price">${item.totalPremium.toFixed(2)}元</span>
+            </div>
+            <div class="history-detail">${item.category} | ${item.passengers}人 | ${item.timestamp}</div>
+        </div>
+    `).join('');
+}
+
+function loadFromHistory(index) {
+    const item = quoteHistory[index];
+    document.getElementById('plate').value = item.plate;
+    document.getElementById('fuelType').value = item.fuelType;
+    document.getElementById('category').value = item.category;
+    document.getElementById('passengers').value = item.passengers;
+    document.getElementById('thirdParty').value = item.thirdParty;
+    document.getElementById('medicalOutside').value = item.medicalOutsideLimit || 10;
+    document.getElementById('drivingAccident').value = item.drivingAccident || '无';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function clearHistory() {
+    quoteHistory = [];
+    localStorage.removeItem('quoteHistory_v2');
+    document.getElementById('historySection').classList.remove('show');
+}
+
+displayHistory();
+</script>
+</body>
+</html>
