@@ -285,12 +285,23 @@ class InsuranceQuotationSystem:
     
     def calculate_commercial_discount(self, vehicle_fuel_type: str, vehicle_age: float) -> float:
         """
-        计算商业险折扣（同时用于交強險折扣）
+        计算商业险折扣
         
-        规则（燃油车和新能源车统一根据车龄计算）:
-        - 2年以上（进入第二年）: 七折 (0.7)
-        - 1年以上: 八折 (0.8)
-        - 1年以下: 九折 (0.9)
+        规则：
+        - 交强险：所有车辆（燃油车/新能源车）统一根据车龄计算
+        - 商业险/医保外：燃油车根据车龄；新能源车固定九折
+        
+        交强险折扣：
+        - 3年以上: 七折 (0.7)
+        - 2年以上: 八折 (0.8)
+        - 1年以上: 九折 (0.9)
+        - 1年以内: 无折扣 (1.0)
+        
+        商业险折扣（仅燃油车）：
+        - 1年以上: 七折 (0.7)
+        - 1年以内: 八折 (0.8)
+        
+        新能源车商业险：固定九折 (0.9)
         
         Args:
             vehicle_fuel_type: 车辆类型（燃油车/新能源车）
@@ -299,13 +310,40 @@ class InsuranceQuotationSystem:
         Returns:
             商业险折扣系数
         """
-        # 燃油车和新能源车统一根据车龄计算折扣
-        if vehicle_age >= 2:
-            return 0.7  # 2年以上（进入第二年）七折
-        elif vehicle_age >= 1:
-            return 0.8  # 1年以上八折
+        # 商业险：新能源车固定九折，燃油车根据车龄
+        if vehicle_fuel_type == "新能源车":
+            return 0.9  # 新能源车固定九折
         else:
-            return 0.9  # 1年以下九折
+            # 燃油车商业险
+            if vehicle_age >= 1:
+                return 0.7  # 1年以上七折
+            else:
+                return 0.8  # 1年以内八折
+
+    def calculate_compulsory_discount(self, vehicle_age: float) -> float:
+        """
+        计算交强险折扣（所有车辆统一）
+        
+        规则：
+        - 3年以上: 七折 (0.7)
+        - 2年以上: 八折 (0.8)
+        - 1年以上: 九折 (0.9)
+        - 1年以内: 无折扣 (1.0)
+        
+        Args:
+            vehicle_age: 车龄（年）
+            
+        Returns:
+            交强险折扣系数
+        """
+        if vehicle_age >= 3:
+            return 0.7  # 3年以上七折
+        elif vehicle_age >= 2:
+            return 0.8  # 2年以上八折
+        elif vehicle_age >= 1:
+            return 0.9  # 1年以上九折
+        else:
+            return 1.0  # 1年以内无折扣
     
     def calculate_driving_accident_premium(self, coverage_type: str, seat_count: int) -> float:
         """
@@ -369,19 +407,23 @@ class InsuranceQuotationSystem:
         # 获取系统参数
         params = SYSTEM_PARAMS["fuel"] if vehicle_fuel_type == "燃油车" else SYSTEM_PARAMS["ev"]
         
-        # 1. 交强险保费（根据车龄计算折扣）
+        # 1. 交强险保费（所有车辆统一根据车龄计算折扣）
         compulsory_base = COMPULSORY_BASE_RATES.get(vehicle_category, 950)
-        compulsory_discount = self.calculate_commercial_discount(vehicle_fuel_type, vehicle_age)
+        compulsory_discount = self.calculate_compulsory_discount(vehicle_age)
         compulsory_premium = compulsory_base * compulsory_discount
         
         # 2. 商业险折扣
         # 新能源车：整個商業險固定九折；燃油车：根据车龄折扣
         if vehicle_fuel_type == "新能源车":
             commercial_discount = 0.9  # 新能源车整個商業險固定九折
-            third_party_discount = 0.9  # 新能源车第三者责任险固定九折
         else:
-            commercial_discount = self.calculate_commercial_discount(vehicle_fuel_type, vehicle_age)
-            third_party_discount = commercial_discount
+            # 燃油车商业险折扣
+            if vehicle_age >= 1:
+                commercial_discount = 0.7  # 1年以上七折
+            else:
+                commercial_discount = 0.8  # 1年以内八折
+        
+        third_party_discount = commercial_discount
         
         third_party_premium = self.calculate_third_party_premium(
             vehicle_fuel_type, vehicle_category, third_party_limit, 

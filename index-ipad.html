@@ -668,9 +668,10 @@
 
                             <div class="age-input-group active" id="selectAge">
                                 <select id="vehicleAgeSelect">
-                                    <option value="3.5">2年以上 → 七折</option>
-                                    <option value="2.5">1年以上 → 八折</option>
-                                    <option value="1.5">2年以下 → 九折</option>
+                                    <option value="3.5">3年以上 → 七折</option>
+                                    <option value="2.5">2年以上 → 八折</option>
+                                    <option value="1.5">1年以上 → 九折</option>
+                                    <option value="0.5">1年以内 → 无折扣</option>
                                 </select>
                             </div>
 
@@ -787,10 +788,22 @@ function calculateAgeFromYearMonth(year, month) {
     return Math.round((ageYear + monthDiff / 12) * 10) / 10;
 }
 
+function calculateCompulsoryDiscount(vehicleAge) {
+    // 交强险折扣（所有车辆统一）
+    if (vehicleAge >= 3) return 0.7;  // 三年以上：七折
+    if (vehicleAge >= 2) return 0.8;  // 两岁以上：八折
+    if (vehicleAge >= 1) return 0.9;  // 一年以上：九折
+    return 1.0;  // 一年以内：无折扣
+}
+
 function calculateCommercialDiscount(fuelType, vehicleAge) {
-    if (vehicleAge >= 2) return 0.7;  // 两年以上（进入第二年）：七折
-    if (vehicleAge >= 1) return 0.8;  // 一年以上：八折
-    return 0.9;  // 一年以下：九折
+    // 商业险/医保外折扣
+    // 新能源车：固定九折
+    // 燃油车：根据车龄
+    if (fuelType === "新能源车") return 0.9;  // 新能源车固定九折
+    // 燃油车
+    if (vehicleAge >= 1) return 0.7;  // 一年以上：七折
+    return 0.8;  // 一年以内：八折
 }
 
 function calculateDrivingAccident(coverageType, seatCount) {
@@ -801,18 +814,25 @@ function calculateDrivingAccident(coverageType, seatCount) {
 }
 
 function getAgeLabel(vehicleAge) {
-    if (vehicleAge >= 2) return '2年以上 (七折)';
-    if (vehicleAge >= 1) return '1年以上 (八折)';
-    return '2年以下 (九折)';
+    if (vehicleAge >= 3) return '3年以上 (七折)';
+    if (vehicleAge >= 2) return '2年以上 (八折)';
+    if (vehicleAge >= 1) return '1年以上 (九折)';
+    return '1年以内 (无折扣)';
 }
 
 function generateQuote(data) {
     const rates = data.fuelType === "燃油车" ? FUEL_THIRD_PARTY_RATES : EV_THIRD_PARTY_RATES;
     const medicalRates = data.fuelType === "燃油车" ? FUEL_MEDICAL_OUTSIDE_RATES : EV_MEDICAL_OUTSIDE_RATES;
-    const discount = calculateCommercialDiscount(data.fuelType, data.vehicleAge);
+    
+    // 交强险折扣（所有车辆统一）
+    const compulsoryDiscount = calculateCompulsoryDiscount(data.vehicleAge);
+    
+    // 商业险折扣
+    const commercialDiscount = calculateCommercialDiscount(data.fuelType, data.vehicleAge);
+    
     const compulsoryBase = COMPULSORY_BASE_RATES[data.category] || 950;
-    const compulsoryPremium = compulsoryBase * discount;
-    const commercialDiscount = (data.fuelType === "新能源车") ? 0.9 : discount;
+    const compulsoryPremium = compulsoryBase * compulsoryDiscount;
+    
     const baseThirdParty = rates[data.category][data.thirdParty] || 0;
     const thirdPartyPremium = baseThirdParty * commercialDiscount;
     const medicalOutsideLimit = data.medicalOutsideLimit || 10;
